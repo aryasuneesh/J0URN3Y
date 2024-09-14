@@ -1,34 +1,58 @@
 import streamlit as st
 from api.itinerary_generator import generate_itinerary
-from api.parse_itinerary import parse_itinerary  # Add the parsing function here
+from api.parse_itinerary import parse_itinerary
+from api.map_generator import display_map
 
-# Streamlit UI
-st.title("J0URN3Y - AI-Powered Travel Itinerary Generator")
+# Main Streamlit App
+st.title("J0URN3Y - AI Travel Itinerary Generator")
 
-# User input form
-location = st.text_input("Enter your destination")
-start_date = st.date_input("Start Date")
-end_date = st.date_input("End Date")
-interests = st.multiselect("Select your interests", 
-                           ["sightseeing", "museums", "parks", "adventure", "water activities", 
-                            "foodie", "walking", "beaches", "shopping"])
-budget = st.selectbox("Select your budget", ["low", "moderate", "high"])
+# Create two columns for layout
+left_col, right_col = st.columns([1, 3])
 
-# Button to generate itinerary
-if st.button("Generate Itinerary"):
-    if location and start_date and end_date and interests and budget:
-        # Call the itinerary generator
-        response = generate_itinerary(
-            location=location, 
-            start_date=start_date.strftime('%d-%m-%Y'), 
-            end_date=end_date.strftime('%d-%m-%Y'), 
-            interests=interests, 
-            budget=budget
-        )
-        
-        # Parse and display the itinerary
-        formatted_itinerary = parse_itinerary(response)
-        st.markdown(formatted_itinerary)
+# Input fields for the itinerary generator (left column)
+with left_col:
+    st.header("Input Your Trip Details")
+    location = st.text_input("Enter your destination (e.g., Berlin)")
+    start_date = st.date_input("Start Date")
+    end_date = st.date_input("End Date")
+    interests = st.multiselect("Select your interests", ["Museums", "Parks", "Adventure", "Food", "Shopping", "Art"])
+    budget = st.selectbox("Select your budget", ["Low", "Moderate", "High"])
 
-    else:
-        st.error("Please fill all the fields to generate the itinerary.")
+    # Generate itinerary button
+    if st.button("Generate Itinerary"):
+        if location and start_date and end_date and interests and budget:
+            with st.spinner("Generating your itinerary..."):
+                response = generate_itinerary(location, str(start_date), str(end_date), interests, budget)
+
+            # Check if response has an error
+            if isinstance(response, dict) and "error" in response:
+                st.error(f"Error generating itinerary: {response['error']}")
+            else:
+                # Parse the generated itinerary
+                parsed_itinerary = parse_itinerary(response)
+
+                # Display the parsed itinerary in the right column
+                with right_col:
+                    st.header("Your AI-Generated Itinerary")
+                    for day in parsed_itinerary:
+                        with st.expander(f"Date: {day['date']} - {day['activity']}"):
+                            st.write(f"**Place**: {day['place']}")
+                            st.write(f"**Activity**: {day['activity']}")
+                            st.write(f"**Description**: {day['description']}")
+                            # Display map
+                            st.subheader("Location Map")
+                            display_map(day['place'] + "," + location)
+        else:
+            st.error("Please fill out all fields.")
+
+# Additional feature buttons (below the itinerary display in the right column)
+with right_col:
+    st.header("Enhance Your Travel Experience")
+
+    # Language learning button (placeholder)
+    if st.button("Language Learning Resources"):
+        st.info("Language learning resources feature coming soon!")
+
+    # Souvenir suggestions button (placeholder)
+    if st.button("Personalized Souvenir Suggestions"):
+        st.info("Personalized souvenir suggestions feature coming soon!")

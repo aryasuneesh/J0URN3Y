@@ -29,9 +29,9 @@ def parse_itinerary(itinerary_json: str) -> List[Dict[str, Any]]:
         return parsed_itinerary
 
     except json.JSONDecodeError as e:
-        return {"error": f"Invalid JSON format: {str(e)}"}
+        return [{"error": f"Invalid JSON format: {str(e)}"}]
     except Exception as e:
-        return {"error": str(e)}
+        return [{"error": str(e)}]
 
 if __name__ == "__main__":
     # Example usage for testing
