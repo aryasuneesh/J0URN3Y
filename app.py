@@ -6,6 +6,9 @@ from api.map_generator import display_map
 from api.language_learning import get_language_phrases
 from api.cultural_sensitivity import get_cultural_tips
 from api.souvenir_suggestions import get_souvenir_suggestions
+from api.local_experience import search_local_experiences
+from api.packing_list import generate_packing_list
+
 
 def wide_space_default():
     st.set_page_config(layout="wide")
@@ -101,3 +104,33 @@ with right_col:
                     st.write("---")
             except json.JSONDecodeError:
                 st.error("Error parsing souvenir suggestions. Please try again.")
+
+    if st.button("Find Local Experiences"):
+        with st.spinner("Searching for local experiences..."):
+            experiences = search_local_experiences(location, interests)
+            if isinstance(experiences, list) and experiences:
+                for exp in experiences:
+                    st.subheader(exp['title'])
+                    st.write(exp['content'])
+                    st.write(f"[Read more]({exp['url']})")
+                    st.write("---")
+            elif isinstance(experiences, dict) and 'error' in experiences:
+                st.error(f"Error finding local experiences: {experiences['error']}")
+            else:
+                st.warning("No local experiences found. Try different interests or a more specific location.")
+    
+    if st.button("Generate Packing List"):
+        with st.spinner("Generating packing list..."):
+            packing_list = generate_packing_list(location, interests, str(start_date), str(end_date))
+            try:
+                # Parse the string response into a Python dictionary
+                packing_list_dict = eval(packing_list)
+                
+                st.subheader("Your Personalized Packing List")
+                for category, items in packing_list_dict.items():
+                    with st.expander(category.capitalize()):
+                        for item in items:
+                            st.write(f"- {item}")
+            except Exception as e:
+                st.error(f"Error parsing packing list: {str(e)}. Please try again.")
+
