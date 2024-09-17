@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
+import json
 from typing import List, Dict, Any
 
 # Configuration for Google AI Studio API
@@ -30,10 +31,23 @@ def generate_itinerary(location: str, start_date: str, end_date: str, interests:
         """
 
         response = model.generate_content(prompt)
-        response_dict = response.to_dict()  # Convert to dict format
-        itinerary_json = response_dict["candidates"][0]["content"]["parts"][0]["text"]  # Extract JSON text
+        response_dict = response.to_dict()
+        itinerary_json = response_dict["candidates"][0]["content"]["parts"][0]["text"]
         
-        return itinerary_json
+        # Parse the JSON string into a Python object
+        itinerary_list = json.loads(itinerary_json)
+        
+        # Create the complete itinerary object
+        complete_itinerary = {
+            'location': location,
+            'start_date': start_date,
+            'end_date': end_date,
+            'interests': interests,
+            'budget': budget,
+            'itinerary': itinerary_list
+        }
+        
+        return complete_itinerary
         
     except Exception as e:
         return {"error": str(e)}
@@ -47,4 +61,4 @@ if __name__ == "__main__":
         interests=["museums", "parks", "adventure"], 
         budget="moderate"
     )
-    print(example_itinerary)
+    print(json.dumps(example_itinerary, indent=2))
