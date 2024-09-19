@@ -3,7 +3,7 @@ from api.map_generator import display_map
 
 st.set_page_config(page_title="Itinerary Generator", page_icon="🗺️", layout="wide")
 
-st.title("Your AI-Generated Itinerary")
+st.title("Your Personalized Itinerary!")
 
 if 'all_data' in st.session_state:
     for day in st.session_state['all_data']["itinerary"]:
